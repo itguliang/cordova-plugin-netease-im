@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  id="cordova-plugin-netease-im"
+  version="1.0.0">
+  <name>cordova-plugin-netease-im</name>
+  <description>
+    This plugin allows you to use NIM SDK
+  </description>
+  <author>IT姑凉</author>
+  <license>MIT</license>
+  <keywords>NIM</keywords>
+
+  <engines>
+    <engine name="cordova" version=">=3.0.0" />
+  </engines>
+  
+  <js-module src="www/NIMPlugin.js" name="NIMPlugin">
+    <clobbers target="NIMPlugin" />
+  </js-module>
+
+  <platform name="android">
+
+    <!-- config-file  target："res/xml/config.xml"  parent："/*" -->
+    <config-file target="res/xml/config.xml" parent="/*">
+      <feature name="NIMPlugin">
+        <param name="android-package" value="com.netease.nim.NIMPlugin" />
+      </feature>
+    </config-file>
+
+    <config-file target="AndroidManifest.xml" parent="/*">  
+      <uses-permission android:name="android.permission.INTERNET" />
+      <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+      <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+      <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+      <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    </config-file>
+
+    <config-file target="AndroidManifest.xml" parent="/manifest/application">
+      <!-- Required  SDK核心功能 android:value值换成自己的appKey-->
+      <meta-data android:name="com.netease.nim.appKey" android:value="91edf0ebde8828cbfa8a6b1502adc8a1" />
+      <service android:name="com.netease.nimlib.service.NimService" android:process=":core" />
+      <service android:name="com.netease.nimlib.service.NimService$Aux" android:process=":core" />
+      <receiver android:exported="false" android:name="com.netease.nimlib.service.NimReceiver" android:process=":core">
+        <intent-filter>
+          <action android:name="android.intent.action.BOOT_COMPLETED" />
+          <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+        </intent-filter>
+      </receiver>
+      <receiver android:name="com.netease.nimlib.service.ResponseReceiver" />
+      <service android:name="com.netease.nimlib.service.ResponseService" />
+
+    </config-file>
+
+    <!-- source-file src："src/android/java类名" tartget-dir："src/包类"会复制进项目包中 -->
+    <source-file src="src/android/cosinesdk.jar" target-dir="libs"/>
+    <source-file src="src/android/nim-basesdk-3.5.5.jar" target-dir="libs"/>
+    <source-file src="src/android/nim-chatroom-3.5.5.jar" target-dir="libs"/>
+
+    <source-file src="src/android/arm64-v8a/libcosine.so" target-dir="libs/arm64-v8a"/>
+    <source-file src="src/android/arm64-v8a/libne_audio.so" target-dir="libs/arm64-v8a"/>
+
+    <source-file src="src/android/armeabi-v7a/libcosine.so" target-dir="libs/armeabi-v7a"/>
+    <source-file src="src/android/armeabi-v7a/libne_audio.so" target-dir="libs/armeabi-v7a"/>
+
+    <source-file src="src/android/x86/libcosine.so" target-dir="libs/x86"/>
+    <source-file src="src/android/x86/libne_audio.so" target-dir="libs/x86"/>
+
+    <source-file src="src/android/x86_64/libcosine.so" target-dir="libs/x86_64"/>
+    <source-file src="src/android/x86_64/libne_audio.so" target-dir="libs/x86_64"/>
+
+    <source-file src="src/android/NIMPlugin.java" target-dir="src/com/netease/nim"/>
+    <source-file src="src/android/NimApplication.java" target-dir="src/com/netease/nim"/>
+
+  </platform>
+
+</plugin>
