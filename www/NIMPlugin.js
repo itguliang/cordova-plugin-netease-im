@@ -7,7 +7,14 @@ function NIMPlugin() {}
 // arg4：调用的原生方法名
 // arg5：参数
 NIMPlugin.prototype.login = function(account, token, onSuccess, onError) {
-  exec(onSuccess, onError, "NIMPlugin", "login", [account, token]);
+	exec(onSuccess, onError, "NIMPlugin", "login", [account, token]);
+}
+
+NIMPlugin.prototype.logout = function() {
+	exec(onSuccess, onError, "NIMPlugin", "logout");
+}
+NIMPlugin.prototype.sendTextMsg = function(sessionId, sessionType,content, onSuccess, onError) {
+	exec(onSuccess, onError, "NIMPlugin", "sendTextMsg", [sessionId, sessionType,content]);
 }
 
 module.exports = new NIMPlugin();
