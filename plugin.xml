@@ -70,7 +70,6 @@
     <source-file src="src/android/x86_64/libne_audio.so" target-dir="libs/x86_64"/>
 
     <source-file src="src/android/NIMPlugin.java" target-dir="src/com/netease/nim"/>
-    <source-file src="src/android/NimApplication.java" target-dir="src/com/netease/nim"/>
 
   </platform>
 
