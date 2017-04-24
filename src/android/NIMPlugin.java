@@ -9,7 +9,6 @@ import com.netease.nimlib.sdk.auth.AuthService;
 import com.netease.nimlib.sdk.auth.LoginInfo;
 import com.netease.nimlib.sdk.msg.constant.SessionTypeEnum;
 import com.netease.nimlib.sdk.StatusCode;
-import android.util.Log;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -27,7 +26,7 @@ public class NIMPlugin extends CordovaPlugin {
         }else if("sendTextMsg".equals(action)){
             sendTextMsg(callbackContext,args.getString(0),args.getString(1),args.getString(2));
         }else if("getStatus".equals(action)){
-            getStatus();
+            getStatus(callbackContext);
         }
 
         return true;
@@ -55,9 +54,13 @@ public class NIMPlugin extends CordovaPlugin {
     }
     
 
-    private void getStatus() {
-        StatusCode status = NIMClient.getStatus();
-        return status;
+    private void getStatus(CallbackContext callbackContext) {
+        if (NIMClient.getStatus() == StatusCode.LOGINED){
+            callbackContext.success("LOGINED");
+        }
+        if (NIMClient.getStatus() == StatusCode.UNLOGIN){
+            callbackContext.success("UNLOGIN");
+        }
     }
 
     private void logout() {
@@ -65,7 +68,6 @@ public class NIMPlugin extends CordovaPlugin {
     }
 
     private void sendTextMsg(final CallbackContext callbackContext, final String sessionId, final String sessionType,final String content) {
-        Log.v("sessionId", sessionId);
         IMMessage message = MessageBuilder.createTextMessage(
             sessionId, 
             SessionTypeEnum.P2P, 

@@ -12,14 +12,12 @@ NIMPlugin.prototype.login = function(account, token, onSuccess, onError) {
 
 NIMPlugin.prototype.logout = function(onSuccess, onError) {
 	onSuccess = onSuccess || function(){};
-	onFailed = onFailed || function(e){ console.log(e); };
-	exec(onSuccess, onError, "NIMPlugin", "logout");
+	onError = onError || function(e){ console.log(e); };
+	exec(onSuccess, onError, "NIMPlugin", "logout",[]);
 }
 
 NIMPlugin.prototype.getStatus = function(onSuccess, onError) {
-	onSuccess = onSuccess || function(){};
-	onFailed = onFailed || function(e){ console.log(e); };
-	exec(onSuccess, onError, "NIMPlugin", "getStatus");
+	exec(onSuccess, onError, "NIMPlugin", "getStatus",[]);
 }
 
 NIMPlugin.prototype.sendTextMsg = function(sessionId, sessionType,content, onSuccess, onError) {
