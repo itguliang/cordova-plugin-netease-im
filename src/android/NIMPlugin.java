@@ -1,21 +1,25 @@
 package com.netease.nim;
 
 import com.netease.nimlib.sdk.NIMClient;
-import com.netease.nimlib.sdk.msg.model.IMMessage;
-import com.netease.nimlib.sdk.msg.MessageBuilder;
-import com.netease.nimlib.sdk.msg.MsgService;
+import com.netease.nimlib.sdk.StatusCode;
 import com.netease.nimlib.sdk.RequestCallback;
+import com.netease.nimlib.sdk.RequestCallbackWrapper;
+
 import com.netease.nimlib.sdk.auth.AuthService;
 import com.netease.nimlib.sdk.auth.LoginInfo;
-import com.netease.nimlib.sdk.msg.constant.SessionTypeEnum;
-import com.netease.nimlib.sdk.StatusCode;
 
-import org.apache.cordova.CallbackContext;
-import org.apache.cordova.CordovaPlugin;
-import org.json.JSONArray;
-import org.json.JSONException;
+import com.netease.nimlib.sdk.msg.MessageBuilder;
+import com.netease.nimlib.sdk.msg.MsgService;
+import com.netease.nimlib.sdk.msg.constant.SessionTypeEnum;
+import com.netease.nimlib.sdk.msg.model.IMMessage;
+import com.netease.nimlib.sdk.msg.model.RecentContact;
 
 import java.io.File;
+import java.util.List;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaPlugin;
 
 public class NIMPlugin extends CordovaPlugin {
 
