@@ -27,6 +27,10 @@ public class NIMPlugin extends CordovaPlugin {
             sendTextMsg(callbackContext,args.getString(0),args.getString(1),args.getString(2));
         }else if("getStatus".equals(action)){
             getStatus(callbackContext);
+        }else if("queryRecentContacts".equals(action)){
+            queryRecentContacts(callbackContext);
+        }else if("sendImageMessage".equals(action)){
+            sendImageMessage(callbackContext,args.getString(0),args.getString(1),args.getString(2));
         }
 
         return true;
@@ -67,6 +71,26 @@ public class NIMPlugin extends CordovaPlugin {
         NIMClient.getService(AuthService.class).logout();
     }
 
+    private void queryRecentContacts(CallbackContext callbackContext) {
+        NIMClient.getService(MsgService.class).queryRecentContacts()
+        .setCallback(new RequestCallbackWrapper<List<RecentContact>>() {
+            @Override
+            public void onSuccess(List<RecentContact> recents) {
+                callbackContext.success();
+            }
+
+            @Override
+            public void onFailed(int code) {
+                callbackContext.error(code);
+            }
+
+            @Override
+            public void onException(Throwable exception) {
+                callbackContext.error(exception.getMessage());
+            }
+        });
+    }
+
     private void sendTextMsg(final CallbackContext callbackContext, final String sessionId, final String sessionType,final String content) {
         IMMessage message = MessageBuilder.createTextMessage(
             sessionId, 
@@ -91,4 +115,32 @@ public class NIMPlugin extends CordovaPlugin {
             }
         });
     }
+
+    private void sendImageMessage(CallbackContext callbackContext, String sessionId, String sessionType, String file) {
+        IMMessage message = MessageBuilder.createImageMessage(
+            sessionId, 
+            SessionTypeEnum.P2P, 
+            file, 
+            null // 文件显示名字，如果第三方 APP 不关注，可以为 null
+            );
+        NIMClient.getService(MsgService.class).sendMessage(message,true)
+        .setCallback(new RequestCallback<Void>() {
+            @Override
+            public void onSuccess(Void param) {
+                callbackContext.success();
+            }
+
+            @Override
+            public void onFailed(int code) {
+                callbackContext.error(code);
+            }
+
+            @Override
+            public void onException(Throwable exception) {
+                callbackContext.error(exception.getMessage());
+            }
+        });
+    }
+
+    
 }

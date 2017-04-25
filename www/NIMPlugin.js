@@ -20,8 +20,16 @@ NIMPlugin.prototype.getStatus = function(onSuccess, onError) {
 	exec(onSuccess, onError, "NIMPlugin", "getStatus",[]);
 }
 
+NIMPlugin.prototype.queryRecentContacts = function(onSuccess, onError) {
+	exec(onSuccess, onError, "NIMPlugin", "queryRecentContacts", []);
+}
+
 NIMPlugin.prototype.sendTextMsg = function(sessionId, sessionType,content, onSuccess, onError) {
 	exec(onSuccess, onError, "NIMPlugin", "sendTextMsg", [sessionId, sessionType,content]);
+}
+
+NIMPlugin.prototype.sendImageMessage = function(sessionId, sessionType,file, onSuccess, onError) {
+	exec(onSuccess, onError, "NIMPlugin", "sendImageMessage", [sessionId, sessionType,file]);
 }
 
 module.exports = new NIMPlugin();
