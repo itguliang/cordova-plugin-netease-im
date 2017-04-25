@@ -15,6 +15,8 @@ import org.apache.cordova.CordovaPlugin;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.io.File;
+
 public class NIMPlugin extends CordovaPlugin {
 
     @Override
@@ -120,7 +122,7 @@ public class NIMPlugin extends CordovaPlugin {
         IMMessage message = MessageBuilder.createImageMessage(
             sessionId, 
             SessionTypeEnum.P2P, 
-            file, 
+            new File(file), 
             null // 文件显示名字，如果第三方 APP 不关注，可以为 null
             );
         NIMClient.getService(MsgService.class).sendMessage(message,true)
