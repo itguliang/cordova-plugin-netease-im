@@ -32,4 +32,8 @@ NIMPlugin.prototype.sendImageMessage = function(sessionId, sessionType,file, onS
 	exec(onSuccess, onError, "NIMPlugin", "sendImageMessage", [sessionId, sessionType,file]);
 }
 
+NIMPlugin.prototype.pullMessageHistory = function(sessionId, sessionType,limit, persist, onSuccess, onError) {
+	exec(onSuccess, onError, "NIMPlugin", "pullMessageHistory", [sessionId,sessionType, limit, persist]);
+}
+
 module.exports = new NIMPlugin();

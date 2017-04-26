@@ -18,6 +18,7 @@ import java.io.File;
 import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 
@@ -37,6 +38,8 @@ public class NIMPlugin extends CordovaPlugin {
             queryRecentContacts(callbackContext);
         }else if("sendImageMessage".equals(action)){
             sendImageMessage(callbackContext,args.getString(0),args.getString(1),args.getString(2));
+        }else if("pullMessageHistory".equals(action)){
+            pullMessageHistory(callbackContext,args.getString(0),args.getString(1),args.getInt(2),args.getBoolean(3));
         }
 
         return true;
@@ -77,27 +80,31 @@ public class NIMPlugin extends CordovaPlugin {
         NIMClient.getService(AuthService.class).logout();
     }
 
-    private void queryRecentContacts(CallbackContext callbackContext) {
+    private void queryRecentContacts(final CallbackContext callbackContext) {
         NIMClient.getService(MsgService.class).queryRecentContacts()
         .setCallback(new RequestCallbackWrapper<List<RecentContact>>() {
             @Override
-            public void onSuccess(List<RecentContact> recents) {
-                callbackContext.success();
-            }
-
-            @Override
-            public void onFailed(int code) {
-                callbackContext.error(code);
-            }
-
-            @Override
-            public void onException(Throwable exception) {
-                callbackContext.error(exception.getMessage());
+            public void onResult(int code, List<RecentContact> recents, Throwable e) {
+                JSONArray json = new JSONArray();
+                try {  
+                    for(RecentContact r : recents){
+                        JSONObject jo = new JSONObject();
+                        // 根据需要可再加
+                        jo.put("id", r.getContactId());
+                        jo.put("content", r.getContent());
+                        jo.put("unreadCount", r.getUnreadCount());
+                        json.put(jo);
+                    }  
+                } catch (JSONException je) {  
+                    je.printStackTrace();  
+                }  
+                
+                callbackContext.success(json);
             }
         });
     }
 
-    private void sendTextMsg(final CallbackContext callbackContext, final String sessionId, final String sessionType,final String content) {
+    private void sendTextMsg(final CallbackContext callbackContext,String sessionId,String sessionType,String content) {
         IMMessage message = MessageBuilder.createTextMessage(
             sessionId, 
             SessionTypeEnum.P2P, 
@@ -122,7 +129,7 @@ public class NIMPlugin extends CordovaPlugin {
         });
     }
 
-    private void sendImageMessage(CallbackContext callbackContext, String sessionId, String sessionType, String file) {
+    private void sendImageMessage(final CallbackContext callbackContext,String sessionId,String sessionType,String file) {
         IMMessage message = MessageBuilder.createImageMessage(
             sessionId, 
             SessionTypeEnum.P2P, 
@@ -148,5 +155,30 @@ public class NIMPlugin extends CordovaPlugin {
         });
     }
 
+    private void pullMessageHistory(final CallbackContext callbackContext,String sessionId,String sessionType,Integer limit,Boolean persist) {
+        IMMessage imMessage = MessageBuilder.createEmptyMessage(sessionId, SessionTypeEnum.valueOf(sessionType), 0);
+        NIMClient.getService(MsgService.class).pullMessageHistory(imMessage,10,persist)
+        .setCallback(new RequestCallbackWrapper<List<IMMessage>>() {
+            @Override
+            public void onResult(int code, List<IMMessage> messages, Throwable e) {
+                JSONArray json = new JSONArray();
+                try {  
+                    for(IMMessage m : messages){
+                        JSONObject jo = new JSONObject();
+                        // 根据需要可再加
+                        jo.put("sessionId", m.getSessionId());
+                        jo.put("fromAccount", m.getFromAccount());
+                        jo.put("msgType", m.getMsgType());
+                        jo.put("content", m.getContent());
+                        json.put(jo);
+                    }  
+                } catch (JSONException je) {  
+                    je.printStackTrace();  
+                }
+                callbackContext.success(json);
+            }
+
+        });
+    }
     
 }
