@@ -16,6 +16,9 @@ import com.netease.nimlib.sdk.msg.model.RecentContact;
 
 import java.io.File;
 import java.util.List;
+
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,6 +26,8 @@ import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 
 public class NIMPlugin extends CordovaPlugin {
+
+    private static final String TAG = "NIMPlugin";
 
     @Override
     public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
@@ -77,6 +82,7 @@ public class NIMPlugin extends CordovaPlugin {
     }
 
     private void logout() {
+        Log.i(TAG, "logout");
         NIMClient.getService(AuthService.class).logout();
     }
 
@@ -89,10 +95,15 @@ public class NIMPlugin extends CordovaPlugin {
                 try {  
                     for(RecentContact r : recents){
                         JSONObject jo = new JSONObject();
-                        // 根据需要可再加
                         jo.put("id", r.getContactId());
                         jo.put("content", r.getContent());
                         jo.put("unreadCount", r.getUnreadCount());
+                        jo.put("msgType", r.getMsgType());
+                        jo.put("time", r.getTime());
+                        jo.put("sessionType", r.getSessionType());
+                        jo.put("recentMessageId", r.getRecentMessageId());
+                        jo.put("fromAccount", r.getFromAccount());
+                        jo.put("fromNick", r.getFromNick());
                         json.put(jo);
                     }  
                 } catch (JSONException je) {  
@@ -129,13 +140,15 @@ public class NIMPlugin extends CordovaPlugin {
         });
     }
 
-    private void sendImageMessage(final CallbackContext callbackContext,String sessionId,String sessionType,String file) {
+    private void sendImageMessage(final CallbackContext callbackContext,String sessionId,String sessionType,String filePath) {
         IMMessage message = MessageBuilder.createImageMessage(
             sessionId, 
             SessionTypeEnum.P2P, 
-            new File(file), 
+            new File(filePath), 
             null // 文件显示名字，如果第三方 APP 不关注，可以为 null
             );
+        // File file = new File(filePath);
+        // callbackContext.success(filePath+":"+file.length());
         NIMClient.getService(MsgService.class).sendMessage(message,true)
         .setCallback(new RequestCallback<Void>() {
             @Override
@@ -165,7 +178,6 @@ public class NIMPlugin extends CordovaPlugin {
                 try {  
                     for(IMMessage m : messages){
                         JSONObject jo = new JSONObject();
-                        // 根据需要可再加
                         jo.put("sessionId", m.getSessionId());
                         jo.put("fromAccount", m.getFromAccount());
                         jo.put("msgType", m.getMsgType());
