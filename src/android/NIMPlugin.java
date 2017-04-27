@@ -145,10 +145,11 @@ public class NIMPlugin extends CordovaPlugin {
             sessionId, 
             SessionTypeEnum.P2P, 
             new File(filePath), 
-            null // 文件显示名字，如果第三方 APP 不关注，可以为 null
+            null 
             );
-        // File file = new File(filePath);
-        // callbackContext.success(filePath+":"+file.length());
+        File file = new File(filePath);
+        Log.i(TAG, "sendImageMessage ->"+filePath+":"+file.length());
+        
         NIMClient.getService(MsgService.class).sendMessage(message,true)
         .setCallback(new RequestCallback<Void>() {
             @Override
