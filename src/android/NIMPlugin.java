@@ -33,16 +33,28 @@ public class NIMPlugin extends CordovaPlugin {
     public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
         if ("login".equals(action)) {
             login(callbackContext, args.getString(0).toLowerCase(), args.getString(1).toLowerCase());
+
         }else if("logout".equals(action)){
             logout();
+
         }else if("sendTextMsg".equals(action)){
             sendTextMsg(callbackContext,args.getString(0),args.getString(1),args.getString(2));
+
         }else if("getStatus".equals(action)){
             getStatus(callbackContext);
+
         }else if("queryRecentContacts".equals(action)){
             queryRecentContacts(callbackContext);
+
         }else if("sendImageMessage".equals(action)){
             sendImageMessage(callbackContext,args.getString(0),args.getString(1),args.getString(2));
+
+        }else if("sendAudioMessage".equals(action)){
+            sendAudioMessage(callbackContext,args.getString(0),args.getString(1),args.getString(2),args.getLong(3));
+
+        }else if("sendVideoMessage".equals(action)){
+            sendVideoMessage(callbackContext,args.getString(0),args.getString(1),args.getString(2),args.getLong(3),args.getInt(4),args.getInt(5),args.getString(6));
+
         }else if("pullMessageHistory".equals(action)){
             pullMessageHistory(callbackContext,args.getString(0),args.getString(1),args.getInt(2),args.getBoolean(3));
         }
@@ -149,6 +161,34 @@ public class NIMPlugin extends CordovaPlugin {
             );
         File file = new File(filePath);
         Log.i(TAG, "sendImageMessage ->"+filePath+":"+file.length());
+        
+        NIMClient.getService(MsgService.class).sendMessage(message,true)
+        .setCallback(new RequestCallback<Void>() {
+            @Override
+            public void onSuccess(Void param) {
+                callbackContext.success();
+            }
+
+            @Override
+            public void onFailed(int code) {
+                callbackContext.error(code);
+            }
+
+            @Override
+            public void onException(Throwable exception) {
+                callbackContext.error(exception.getMessage());
+            }
+        });
+    }
+
+    private void sendAudioMessage(final CallbackContext callbackContext,String sessionId,String sessionType,String filePath,Long duration) {
+        IMMessage message = MessageBuilder.createAudioMessage(
+            sessionId, 
+            SessionTypeEnum.P2P, 
+            new File(filePath), 
+            duration 
+            );
+        Log.i(TAG, "sendAudioMessage ->"+filePath+":"+duration);
         
         NIMClient.getService(MsgService.class).sendMessage(message,true)
         .setCallback(new RequestCallback<Void>() {

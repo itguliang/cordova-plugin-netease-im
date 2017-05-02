@@ -52,9 +52,9 @@
 
     </config-file>
 
-    <edit-config file="AndroidManifest.xml" target="/manifest/application" mode="merge">
+    <!-- <edit-config file="AndroidManifest.xml" target="/manifest" mode="merge">
       <application android:name=".NimApplication"></application>
-    </edit-config>
+    </edit-config> -->
 
     <!-- source-file src："src/android/java类名" tartget-dir："src/包类"会复制进项目包中 -->
     <source-file src="src/android/cosinesdk.jar" target-dir="libs"/>
@@ -74,7 +74,7 @@
     <source-file src="src/android/x86_64/libne_audio.so" target-dir="libs/x86_64"/>
 
     <source-file src="src/android/NIMPlugin.java" target-dir="src/com/netease/nim"/>
-    <source-file src="src/android/NimApplication.java" target-dir="src/com/ionicframework/nim"/>
+    <source-file src="src/android/NimApplication.java" target-dir="src/com/ionicframework/starter"/>
 
   </platform>
 
