@@ -57,6 +57,9 @@ public class NIMPlugin extends CordovaPlugin {
 
         }else if("pullMessageHistory".equals(action)){
             pullMessageHistory(callbackContext,args.getString(0),args.getString(1),args.getInt(2),args.getBoolean(3));
+
+        }else if("enterRoom".equals(action)){
+            enterRoom(callbackContext,args.getString(0));
         }
 
         return true;
@@ -231,6 +234,41 @@ public class NIMPlugin extends CordovaPlugin {
                 callbackContext.success(json);
             }
 
+        });
+    }
+
+    private void enterRoom(final CallbackContext callbackContext,String roomId) {
+        EnterChatRoomData data = new EnterChatRoomData(roomId);
+        NIMClient.getService(ChatRoomService.class).enterChatRoom(data)
+        .setCallback(new RequestCallback<EnterChatRoomResultData>() {
+
+            @Override
+            public void onSuccess(EnterChatRoomResultData result) {
+                // roomInfo = result.getRoomInfo();
+                // ChatRoomMember member = result.getMember();
+                // member.setRoomId(roomInfo.getRoomId());
+                // ChatRoomMemberCache.getInstance().saveMyMember(member);
+                callbackContext.success(result.getRoomInfo());
+            }
+
+            @Override
+            public void onFailed(int code) {
+                Log.i(TAG, "enter chat room failed, callback code= ->"+code);
+                // if (code == ResponseCode.RES_CHATROOM_BLACKLIST) {
+                //     Toast.makeText(ChatRoomActivity.this, "你已被拉入黑名单，不能再进入", Toast.LENGTH_SHORT).show();
+                // } else if (code == ResponseCode.RES_ENONEXIST) {
+                //     Toast.makeText(ChatRoomActivity.this, "聊天室不存在", Toast.LENGTH_SHORT).show();
+                // } else {
+                //     Toast.makeText(ChatRoomActivity.this, "enter chat room failed, code=" + code, Toast.LENGTH_SHORT).show();
+                // }
+                callbackContext.error(code);
+            }
+
+            @Override
+            public void onException(Throwable exception) {
+                Log.i(TAG, "enter chat room exception, e=->"+exception.getMessage());
+                callbackContext.error(exception.getMessage());
+            }
         });
     }
     

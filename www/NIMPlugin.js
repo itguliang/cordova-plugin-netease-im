@@ -39,4 +39,10 @@ NIMPlugin.prototype.pullMessageHistory = function(sessionId, sessionType,limit, 
 	exec(onSuccess, onError, "NIMPlugin", "pullMessageHistory", [sessionId,sessionType, limit, persist]);
 }
 
+// 聊天室
+
+NIMPlugin.prototype.pullMessageHistory = function(roomId,onSuccess, onError) {
+	exec(onSuccess, onError, "NIMPlugin", "enterRoom", [roomId]);
+}
+
 module.exports = new NIMPlugin();
