@@ -13,6 +13,10 @@ import com.netease.nimlib.sdk.msg.MsgService;
 import com.netease.nimlib.sdk.msg.constant.SessionTypeEnum;
 import com.netease.nimlib.sdk.msg.model.IMMessage;
 import com.netease.nimlib.sdk.msg.model.RecentContact;
+import com.netease.nimlib.sdk.chatroom.model.ChatRoomInfo;
+import com.netease.nimlib.sdk.chatroom.ChatRoomService;
+import com.netease.nimlib.sdk.chatroom.model.EnterChatRoomData;
+import com.netease.nimlib.sdk.chatroom.model.EnterChatRoomResultData;
 
 import java.io.File;
 import java.util.List;
@@ -53,7 +57,7 @@ public class NIMPlugin extends CordovaPlugin {
             sendAudioMessage(callbackContext,args.getString(0),args.getString(1),args.getString(2),args.getLong(3));
 
         }else if("sendVideoMessage".equals(action)){
-            sendVideoMessage(callbackContext,args.getString(0),args.getString(1),args.getString(2),args.getLong(3),args.getInt(4),args.getInt(5),args.getString(6));
+            // sendVideoMessage(callbackContext,args.getString(0),args.getString(1),args.getString(2),args.getLong(3),args.getInt(4),args.getInt(5),args.getString(6));
 
         }else if("pullMessageHistory".equals(action)){
             pullMessageHistory(callbackContext,args.getString(0),args.getString(1),args.getInt(2),args.getBoolean(3));
@@ -244,11 +248,11 @@ public class NIMPlugin extends CordovaPlugin {
 
             @Override
             public void onSuccess(EnterChatRoomResultData result) {
-                // roomInfo = result.getRoomInfo();
+                ChatRoomInfo roomInfo = result.getRoomInfo();
                 // ChatRoomMember member = result.getMember();
                 // member.setRoomId(roomInfo.getRoomId());
                 // ChatRoomMemberCache.getInstance().saveMyMember(member);
-                callbackContext.success(result.getRoomInfo());
+                callbackContext.success("enterRoom success");
             }
 
             @Override
