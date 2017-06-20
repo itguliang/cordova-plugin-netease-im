@@ -33,9 +33,11 @@ import com.netease.nimlib.sdk.msg.MsgService;
 import com.netease.nimlib.sdk.msg.constant.SessionTypeEnum;
 import com.netease.nimlib.sdk.msg.model.IMMessage;
 import com.netease.nimlib.sdk.msg.model.RecentContact;
+import com.netease.nimlib.sdk.msg.attachment.FileAttachment;
+import com.netease.nimlib.sdk.msg.constant.MsgTypeEnum;
 
 import com.netease.nimlib.sdk.chatroom.ChatRoomService;
-import com.netease.nimlib.sdk.chatroom.ChatRoomMessageBuilder
+import com.netease.nimlib.sdk.chatroom.ChatRoomMessageBuilder;
 import com.netease.nimlib.sdk.chatroom.model.ChatRoomInfo;
 import com.netease.nimlib.sdk.chatroom.model.ChatRoomMessage;
 import com.netease.nimlib.sdk.chatroom.model.EnterChatRoomData;
@@ -120,7 +122,7 @@ public class NIMPlugin extends CordovaPlugin {
             sendChatRoomImageMsg(callbackContext, args.getString(0), args.getString(1), args.getString(2));
 
         }else if("sendChatRoomAudioMsg".equals(action)){
-            sendChatRoomAudioMsg(callbackContext, args.getString(0), args.getString(1), args.getString(2));
+            sendChatRoomAudioMsg(callbackContext, args.getString(0), args.getString(1), args.getLong(2));
 
         }
 
@@ -288,6 +290,9 @@ public class NIMPlugin extends CordovaPlugin {
                         jo.put("fromAccount", m.getFromAccount());
                         jo.put("msgType", m.getMsgType());
                         jo.put("content", m.getContent());
+                        if(m.getMsgType()!=MsgTypeEnum.text){
+                            jo.put("attachment",((FileAttachment)m.getAttachment()).getPath());
+                        }
                         json.put(jo);
                     }  
                 } catch (JSONException je) {  
@@ -386,7 +391,7 @@ public class NIMPlugin extends CordovaPlugin {
             content 
         );
 
-        NIMClient.getService(ChatRoomService.class).sendMessage(message)
+        NIMClient.getService(ChatRoomService.class).sendMessage(message,true)
         .setCallback(new RequestCallback<Void>() {
             @Override
             public void onSuccess(Void param) {
@@ -413,7 +418,7 @@ public class NIMPlugin extends CordovaPlugin {
         File file = new File(filePath);
         Log.i(TAG, "sendChatRoomImageMsg ->"+filePath+":"+file.length());
         
-        NIMClient.getService(ChatRoomService.class).sendMessage(message)
+        NIMClient.getService(ChatRoomService.class).sendMessage(message,true)
         .setCallback(new RequestCallback<Void>() {
             @Override
             public void onSuccess(Void param) {
@@ -440,7 +445,7 @@ public class NIMPlugin extends CordovaPlugin {
             );
         Log.i(TAG, "sendChatRoomAudioMsg ->"+filePath+":"+duration);
         
-        NIMClient.getService(ChatRoomService.class).sendMessage(message)
+        NIMClient.getService(ChatRoomService.class).sendMessage(message,true)
         .setCallback(new RequestCallback<Void>() {
             @Override
             public void onSuccess(Void param) {
