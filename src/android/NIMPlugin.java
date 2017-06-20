@@ -1,23 +1,4 @@
 package com.netease.nim;
-
-import com.netease.nimlib.sdk.NIMClient;
-import com.netease.nimlib.sdk.StatusCode;
-import com.netease.nimlib.sdk.RequestCallback;
-import com.netease.nimlib.sdk.RequestCallbackWrapper;
-
-import com.netease.nimlib.sdk.auth.AuthService;
-import com.netease.nimlib.sdk.auth.LoginInfo;
-
-import com.netease.nimlib.sdk.msg.MessageBuilder;
-import com.netease.nimlib.sdk.msg.MsgService;
-import com.netease.nimlib.sdk.msg.constant.SessionTypeEnum;
-import com.netease.nimlib.sdk.msg.model.IMMessage;
-import com.netease.nimlib.sdk.msg.model.RecentContact;
-import com.netease.nimlib.sdk.chatroom.model.ChatRoomInfo;
-import com.netease.nimlib.sdk.chatroom.ChatRoomService;
-import com.netease.nimlib.sdk.chatroom.model.EnterChatRoomData;
-import com.netease.nimlib.sdk.chatroom.model.EnterChatRoomResultData;
-
 import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
@@ -31,15 +12,34 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
+// import org.apache.http.HttpResponse;
+// import org.apache.http.NameValuePair;
+// import org.apache.http.client.HttpClient; 
+// import org.apache.http.client.entity.UrlEncodedFormEntity;
+// import org.apache.http.client.methods.HttpPost;
+// import org.apache.http.impl.client.DefaultHttpClient;
+// import org.apache.http.message.BasicNameValuePair;
+// import org.apache.http.util.EntityUtils;
+import com.netease.nimlib.sdk.NIMClient;
+import com.netease.nimlib.sdk.StatusCode;
+import com.netease.nimlib.sdk.RequestCallback;
+import com.netease.nimlib.sdk.RequestCallbackWrapper;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient; 
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
+import com.netease.nimlib.sdk.auth.AuthService;
+import com.netease.nimlib.sdk.auth.LoginInfo;
+
+import com.netease.nimlib.sdk.msg.MessageBuilder;
+import com.netease.nimlib.sdk.msg.MsgService;
+import com.netease.nimlib.sdk.msg.constant.SessionTypeEnum;
+import com.netease.nimlib.sdk.msg.model.IMMessage;
+import com.netease.nimlib.sdk.msg.model.RecentContact;
+
+import com.netease.nimlib.sdk.chatroom.ChatRoomService;
+import com.netease.nimlib.sdk.chatroom.ChatRoomMessageBuilder
+import com.netease.nimlib.sdk.chatroom.model.ChatRoomInfo;
+import com.netease.nimlib.sdk.chatroom.model.ChatRoomMessage;
+import com.netease.nimlib.sdk.chatroom.model.EnterChatRoomData;
+import com.netease.nimlib.sdk.chatroom.model.EnterChatRoomResultData;
 
 public class NIMPlugin extends CordovaPlugin {
 
@@ -86,20 +86,20 @@ public class NIMPlugin extends CordovaPlugin {
         }else if("logout".equals(action)){
             logout();
 
-        }else if("sendTextMsg".equals(action)){
-            sendTextMsg(callbackContext,args.getString(0),args.getString(1),args.getString(2));
-
         }else if("getStatus".equals(action)){
             getStatus(callbackContext);
 
         }else if("queryRecentContacts".equals(action)){
             queryRecentContacts(callbackContext);
 
-        }else if("sendImageMessage".equals(action)){
-            sendImageMessage(callbackContext,args.getString(0),args.getString(1),args.getString(2));
+        }else if("sendTextMsg".equals(action)){
+            sendTextMsg(callbackContext,args.getString(0),args.getString(1),args.getString(2));
 
-        }else if("sendAudioMessage".equals(action)){
-            sendAudioMessage(callbackContext,args.getString(0),args.getString(1),args.getString(2),args.getLong(3));
+        }else if("sendImageMsg".equals(action)){
+            sendImageMsg(callbackContext,args.getString(0),args.getString(1),args.getString(2));
+
+        }else if("sendAudioMsg".equals(action)){
+            sendAudioMsg(callbackContext,args.getString(0),args.getString(1),args.getString(2),args.getLong(3));
 
         }else if("sendVideoMessage".equals(action)){
             // sendVideoMessage(callbackContext,args.getString(0),args.getString(1),args.getString(2),args.getLong(3),args.getInt(4),args.getInt(5),args.getString(6));
@@ -107,10 +107,21 @@ public class NIMPlugin extends CordovaPlugin {
         }else if("pullMessageHistory".equals(action)){
             pullMessageHistory(callbackContext,args.getString(0),args.getString(1),args.getInt(2),args.getBoolean(3));
 
-        }else if("createChatRoom".equals(action)){
-            createChatRoom(callbackContext,args.getString(0));
         }else if("enterChatRoom".equals(action)){
             enterChatRoom(callbackContext,args.getString(0));
+
+        }else if("exitChatRoom".equals(action)){
+            exitChatRoom(args.getString(0));
+
+        }else if("sendChatRoomTextMsg".equals(action)){
+            sendChatRoomTextMsg(callbackContext,args.getString(0),args.getString(1));
+
+        }else if("sendChatRoomImageMsg".equals(action)){
+            sendChatRoomImageMsg(callbackContext, args.getString(0), args.getString(1), args.getString(2));
+
+        }else if("sendChatRoomAudioMsg".equals(action)){
+            sendChatRoomAudioMsg(callbackContext, args.getString(0), args.getString(1), args.getString(2));
+
         }
 
         return true;
@@ -180,7 +191,7 @@ public class NIMPlugin extends CordovaPlugin {
             }
         });
     }
-
+    
     private void sendTextMsg(final CallbackContext callbackContext,String sessionId,String sessionType,String content) {
         IMMessage message = MessageBuilder.createTextMessage(
             sessionId, 
@@ -206,7 +217,7 @@ public class NIMPlugin extends CordovaPlugin {
         });
     }
 
-    private void sendImageMessage(final CallbackContext callbackContext,String sessionId,String sessionType,String filePath) {
+    private void sendImageMsg(final CallbackContext callbackContext,String sessionId,String sessionType,String filePath) {
         IMMessage message = MessageBuilder.createImageMessage(
             sessionId, 
             SessionTypeEnum.P2P, 
@@ -214,7 +225,7 @@ public class NIMPlugin extends CordovaPlugin {
             null 
             );
         File file = new File(filePath);
-        Log.i(TAG, "sendImageMessage ->"+filePath+":"+file.length());
+        Log.i(TAG, "sendImageMsg ->"+filePath+":"+file.length());
         
         NIMClient.getService(MsgService.class).sendMessage(message,true)
         .setCallback(new RequestCallback<Void>() {
@@ -235,14 +246,14 @@ public class NIMPlugin extends CordovaPlugin {
         });
     }
 
-    private void sendAudioMessage(final CallbackContext callbackContext,String sessionId,String sessionType,String filePath,Long duration) {
+    private void sendAudioMsg(final CallbackContext callbackContext,String sessionId,String sessionType,String filePath,Long duration) {
         IMMessage message = MessageBuilder.createAudioMessage(
             sessionId, 
             SessionTypeEnum.P2P, 
             new File(filePath), 
             duration 
             );
-        Log.i(TAG, "sendAudioMessage ->"+filePath+":"+duration);
+        Log.i(TAG, "sendAudioMsg ->"+filePath+":"+duration);
         
         NIMClient.getService(MsgService.class).sendMessage(message,true)
         .setCallback(new RequestCallback<Void>() {
@@ -291,41 +302,40 @@ public class NIMPlugin extends CordovaPlugin {
 
 
     private void createChatRoom(final CallbackContext callbackContext,String roomId) {
+        // DefaultHttpClient httpclient = new DefaultHttpClient();
+        // String url = "https://api.netease.im/nimserver/chatroom/create.action";
+        // HttpPost httpPost = new HttpPost(url);
+
+        // String appKey = "91edf0ebde8828cbfa8a6b1502adc8a1";
+        // String appSecret = "ccd8eac0c58f";
+        // String nonce =  "12345";
+        // String curTime = String.valueOf((new Date()).getTime() / 1000L);
+        // String checkSum = getCheckSum(appSecret, nonce ,curTime);//参考 计算CheckSum的java代码
+
+        // // 设置请求的header
+        // httpPost.addHeader("AppKey", appKey);
+        // httpPost.addHeader("Nonce", nonce);
+        // httpPost.addHeader("CurTime", curTime);
+        // httpPost.addHeader("CheckSum", checkSum);
+        // httpPost.addHeader("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
+
+        // // 设置请求的参数
+        // // creator String  是   聊天室属主的账号accid
+        // // name    String  是   聊天室名称，长度限制128个字符
+        // // announcement    String  否   公告，长度限制4096个字符
+        // // broadcasturl    String  否   直播地址，长度限制1024个字符
+        // // ext String  否   扩展字段，最长4096字符
+        // List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+        // nvps.add(new BasicNameValuePair("creator", "zhangxuan"));
+        // nvps.add(new BasicNameValuePair("name", "聊天室名称"));
+        // httpPost.setEntity(new UrlEncodedFormEntity(nvps));
         
-        HttpClient httpclient = new DefaultHttpClient();
-        String url = "https://api.netease.im/nimserver/chatroom/create.action";
-        HttpPost httpPost = new HttpPost(url);
+        // // 执行请求
+        // HttpResponse response = httpClient.execute(httpPost);
 
-        String appKey = "91edf0ebde8828cbfa8a6b1502adc8a1";
-        String appSecret = "ccd8eac0c58f";
-        String nonce =  "12345";
-        String curTime = String.valueOf((new Date()).getTime() / 1000L);
-        String checkSum = getCheckSum(appSecret, nonce ,curTime);//参考 计算CheckSum的java代码
-
-        // 设置请求的header
-        httpPost.addHeader("AppKey", appKey);
-        httpPost.addHeader("Nonce", nonce);
-        httpPost.addHeader("CurTime", curTime);
-        httpPost.addHeader("CheckSum", checkSum);
-        httpPost.addHeader("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
-
-        // 设置请求的参数
-        // creator String  是   聊天室属主的账号accid
-        // name    String  是   聊天室名称，长度限制128个字符
-        // announcement    String  否   公告，长度限制4096个字符
-        // broadcasturl    String  否   直播地址，长度限制1024个字符
-        // ext String  否   扩展字段，最长4096字符
-        List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-        nvps.add(new BasicNameValuePair("creator", "zhangxuan"));
-        nvps.add(new BasicNameValuePair("name", "聊天室名称"));
-        httpPost.setEntity(new UrlEncodedFormEntity(nvps));
-
-        // 执行请求
-        HttpResponse response = httpClient.execute(httpPost);
-
-        // 打印执行结果
-        System.out.println(EntityUtils.toString(response.getEntity(), "utf-8"));
-        // Log.i(TAG, "create chat room->"+EntityUtils.toString(response.getEntity());
+        // // 打印执行结果
+        // System.out.println(EntityUtils.toString(response.getEntity(), "utf-8"));
+        // // Log.i(TAG, "create chat room->"+EntityUtils.toString(response.getEntity());
 
     }
 
@@ -359,6 +369,91 @@ public class NIMPlugin extends CordovaPlugin {
             @Override
             public void onException(Throwable exception) {
                 Log.i(TAG, "enter chat room exception, e=->"+exception.getMessage());
+                callbackContext.error(exception.getMessage());
+            }
+        });
+    }
+
+    private void exitChatRoom(String roomId) {
+        Log.i(TAG, "exitChatRoom");
+        NIMClient.getService(ChatRoomService.class).exitChatRoom(roomId);
+    }
+
+    private void sendChatRoomTextMsg(final CallbackContext callbackContext,String roomId,String content) {
+
+        ChatRoomMessage message = ChatRoomMessageBuilder.createChatRoomTextMessage(
+            roomId, 
+            content 
+        );
+
+        NIMClient.getService(ChatRoomService.class).sendMessage(message)
+        .setCallback(new RequestCallback<Void>() {
+            @Override
+            public void onSuccess(Void param) {
+                callbackContext.success();
+            }
+
+            @Override
+            public void onFailed(int code) {
+                callbackContext.error(code);
+            }
+
+            @Override
+            public void onException(Throwable exception) {
+                callbackContext.error(exception.getMessage());
+            }
+        });
+    }
+    private void sendChatRoomImageMsg(final CallbackContext callbackContext,String roomId,String filePath,String displayName) {
+        ChatRoomMessage message = ChatRoomMessageBuilder.createChatRoomImageMessage(
+            roomId, 
+            new File(filePath), 
+            displayName 
+            );
+        File file = new File(filePath);
+        Log.i(TAG, "sendChatRoomImageMsg ->"+filePath+":"+file.length());
+        
+        NIMClient.getService(ChatRoomService.class).sendMessage(message)
+        .setCallback(new RequestCallback<Void>() {
+            @Override
+            public void onSuccess(Void param) {
+                callbackContext.success();
+            }
+
+            @Override
+            public void onFailed(int code) {
+                callbackContext.error(code);
+            }
+
+            @Override
+            public void onException(Throwable exception) {
+                callbackContext.error(exception.getMessage());
+            }
+        });
+    }
+
+    private void sendChatRoomAudioMsg(final CallbackContext callbackContext, String roomId, String filePath, Long duration) {
+        ChatRoomMessage message = ChatRoomMessageBuilder.createChatRoomAudioMessage(
+            roomId , 
+            new File(filePath), 
+            duration 
+            );
+        Log.i(TAG, "sendChatRoomAudioMsg ->"+filePath+":"+duration);
+        
+        NIMClient.getService(ChatRoomService.class).sendMessage(message)
+        .setCallback(new RequestCallback<Void>() {
+            @Override
+            public void onSuccess(Void param) {
+                callbackContext.success();
+            }
+
+            @Override
+            public void onFailed(int code) {
+                callbackContext.error(code);
+            }
+
+            @Override
+            public void onException(Throwable exception) {
                 callbackContext.error(exception.getMessage());
             }
         });
