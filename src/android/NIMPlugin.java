@@ -20,6 +20,9 @@ import com.netease.nimlib.sdk.chatroom.model.EnterChatRoomResultData;
 
 import java.io.File;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Date;
+import java.security.MessageDigest;
 
 import android.util.Log;
 
@@ -29,9 +32,51 @@ import org.json.JSONObject;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient; 
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+
 public class NIMPlugin extends CordovaPlugin {
 
     private static final String TAG = "NIMPlugin";
+
+    public static String getCheckSum(String appSecret, String nonce, String curTime) {
+        return encode("sha1", appSecret + nonce + curTime);
+    }
+    // 计算并获取md5值
+    public static String getMD5(String requestBody) {
+        return encode("md5", requestBody);
+    }
+
+    private static String encode(String algorithm, String value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            MessageDigest messageDigest
+                    = MessageDigest.getInstance(algorithm);
+            messageDigest.update(value.getBytes());
+            return getFormattedText(messageDigest.digest());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    private static String getFormattedText(byte[] bytes) {
+        int len = bytes.length;
+        StringBuilder buf = new StringBuilder(len * 2);
+        for (int j = 0; j < len; j++) {
+            buf.append(HEX_DIGITS[(bytes[j] >> 4) & 0x0f]);
+            buf.append(HEX_DIGITS[bytes[j] & 0x0f]);
+        }
+        return buf.toString();
+    }
+    private static final char[] HEX_DIGITS = { '0', '1', '2', '3', '4', '5',
+            '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
     @Override
     public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
@@ -62,8 +107,10 @@ public class NIMPlugin extends CordovaPlugin {
         }else if("pullMessageHistory".equals(action)){
             pullMessageHistory(callbackContext,args.getString(0),args.getString(1),args.getInt(2),args.getBoolean(3));
 
-        }else if("enterRoom".equals(action)){
-            enterRoom(callbackContext,args.getString(0));
+        }else if("createChatRoom".equals(action)){
+            createChatRoom(callbackContext,args.getString(0));
+        }else if("enterChatRoom".equals(action)){
+            enterChatRoom(callbackContext,args.getString(0));
         }
 
         return true;
@@ -241,7 +288,48 @@ public class NIMPlugin extends CordovaPlugin {
         });
     }
 
-    private void enterRoom(final CallbackContext callbackContext,String roomId) {
+
+
+    private void createChatRoom(final CallbackContext callbackContext,String roomId) {
+        
+        HttpClient httpclient = new DefaultHttpClient();
+        String url = "https://api.netease.im/nimserver/chatroom/create.action";
+        HttpPost httpPost = new HttpPost(url);
+
+        String appKey = "91edf0ebde8828cbfa8a6b1502adc8a1";
+        String appSecret = "ccd8eac0c58f";
+        String nonce =  "12345";
+        String curTime = String.valueOf((new Date()).getTime() / 1000L);
+        String checkSum = getCheckSum(appSecret, nonce ,curTime);//参考 计算CheckSum的java代码
+
+        // 设置请求的header
+        httpPost.addHeader("AppKey", appKey);
+        httpPost.addHeader("Nonce", nonce);
+        httpPost.addHeader("CurTime", curTime);
+        httpPost.addHeader("CheckSum", checkSum);
+        httpPost.addHeader("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
+
+        // 设置请求的参数
+        // creator String  是   聊天室属主的账号accid
+        // name    String  是   聊天室名称，长度限制128个字符
+        // announcement    String  否   公告，长度限制4096个字符
+        // broadcasturl    String  否   直播地址，长度限制1024个字符
+        // ext String  否   扩展字段，最长4096字符
+        List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+        nvps.add(new BasicNameValuePair("creator", "zhangxuan"));
+        nvps.add(new BasicNameValuePair("name", "聊天室名称"));
+        httpPost.setEntity(new UrlEncodedFormEntity(nvps));
+
+        // 执行请求
+        HttpResponse response = httpClient.execute(httpPost);
+
+        // 打印执行结果
+        System.out.println(EntityUtils.toString(response.getEntity(), "utf-8"));
+        // Log.i(TAG, "create chat room->"+EntityUtils.toString(response.getEntity());
+
+    }
+
+    private void enterChatRoom(final CallbackContext callbackContext,String roomId) {
         EnterChatRoomData data = new EnterChatRoomData(roomId);
         NIMClient.getService(ChatRoomService.class).enterChatRoom(data)
         .setCallback(new RequestCallback<EnterChatRoomResultData>() {
@@ -252,7 +340,7 @@ public class NIMPlugin extends CordovaPlugin {
                 // ChatRoomMember member = result.getMember();
                 // member.setRoomId(roomInfo.getRoomId());
                 // ChatRoomMemberCache.getInstance().saveMyMember(member);
-                callbackContext.success("enterRoom success");
+                callbackContext.success("enterChatRoom success");
             }
 
             @Override

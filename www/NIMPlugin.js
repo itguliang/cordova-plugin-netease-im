@@ -40,8 +40,11 @@ NIMPlugin.prototype.pullMessageHistory = function(sessionId, sessionType,limit, 
 }
 
 // 聊天室
-NIMPlugin.prototype.enterRoom = function(roomId,onSuccess, onError) {
-	exec(onSuccess, onError, "NIMPlugin", "enterRoom", [roomId]);
+NIMPlugin.prototype.createChatRoom = function(roomId,onSuccess, onError) {
+	exec(onSuccess, onError, "NIMPlugin", "createChatRoom", [roomId]);
+}
+NIMPlugin.prototype.enterChatRoom = function(roomId,onSuccess, onError) {
+	exec(onSuccess, onError, "NIMPlugin", "enterChatRoom", [roomId]);
 }
 
 module.exports = new NIMPlugin();
