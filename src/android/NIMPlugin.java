@@ -21,12 +21,15 @@ import org.apache.cordova.CordovaPlugin;
 // import org.apache.http.message.BasicNameValuePair;
 // import org.apache.http.util.EntityUtils;
 import com.netease.nimlib.sdk.NIMClient;
+import com.netease.nimlib.sdk.Observer;
+
 import com.netease.nimlib.sdk.StatusCode;
 import com.netease.nimlib.sdk.RequestCallback;
 import com.netease.nimlib.sdk.RequestCallbackWrapper;
 
 import com.netease.nimlib.sdk.auth.AuthService;
 import com.netease.nimlib.sdk.auth.LoginInfo;
+import com.netease.nimlib.sdk.auth.AuthServiceObserver;
 
 import com.netease.nimlib.sdk.msg.MessageBuilder;
 import com.netease.nimlib.sdk.msg.MsgService;
@@ -148,6 +151,15 @@ public class NIMPlugin extends CordovaPlugin {
                 callbackContext.error(exception.getMessage());
             }
         });
+        NIMClient.getService(AuthServiceObserver.class).observeOnlineStatus(
+            new Observer<StatusCode> () {
+                public void onEvent(StatusCode code) {
+                    Log.i(TAG, "User status changed to: " + code);
+                    if (code.wontAutoLogin()) {
+                         // 被踢出、账号被禁用、密码错误等情况，自动登录失败，需要返回到登录界面进行重新登录操作
+                    }
+                }
+        }, true);
     }
     
 
