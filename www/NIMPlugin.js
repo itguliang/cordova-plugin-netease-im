@@ -1,7 +1,14 @@
 var exec = require('cordova/exec');
 function NIMPlugin() {}
 // 登录
-NIMPlugin.prototype.login = function(account, token, onSuccess, onError) {
+NIMPlugin.prototype.login = function(account, token, onSuccess, onError,onStatus) {
+	// var win=function (msg) {
+	//     if (msg) {
+	//       onStatus(msg)
+	//     } else {
+	//       onSuccess();
+	//     }
+	//  }
 	exec(onSuccess, onError, "NIMPlugin", "login", [account, token]);
 }
 // 登出
@@ -48,7 +55,7 @@ NIMPlugin.prototype.enterChatRoom = function(roomId, onSuccess, onError) {
 	exec(onSuccess, onError, "NIMPlugin", "enterChatRoom", [roomId]);
 }
 // 离开聊天室
-NIMPlugin.prototype.exitChatRoom = function(roomId) {
+NIMPlugin.prototype.exitChatRoom = function(roomId, onSuccess, onError) {
 	onSuccess = onSuccess || function(){};
 	onError = onError || function(e){ console.log(e); };
 	exec(onSuccess, onError, "NIMPlugin", "exitChatRoom", [roomId]);
