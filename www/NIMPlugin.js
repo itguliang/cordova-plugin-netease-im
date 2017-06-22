@@ -74,4 +74,14 @@ NIMPlugin.prototype.sendChatRoomAudioMsg = function(roomId, filePath, duration, 
 }
 // 聊天室接收消息
 
+// 聊天获取历史消息
+NIMPlugin.prototype.pullChatRoomMessageHistory = function(roomId,startTime,limit,onSuccess, onError) {
+	exec(onSuccess, onError, "NIMPlugin", "pullChatRoomMessageHistory", [roomId,startTime,limit]);
+}
+
+// 获取聊天室成员
+NIMPlugin.prototype.fetchRoomMembers = function(roomId,memberQueryType,time,limit,onSuccess, onError) {
+	exec(onSuccess, onError, "NIMPlugin", "fetchRoomMembers", [roomId,memberQueryType,time,limit]);
+}
+
 module.exports = new NIMPlugin();

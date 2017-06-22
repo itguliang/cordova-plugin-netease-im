@@ -43,6 +43,7 @@ import com.netease.nimlib.sdk.chatroom.ChatRoomService;
 import com.netease.nimlib.sdk.chatroom.ChatRoomMessageBuilder;
 import com.netease.nimlib.sdk.chatroom.model.ChatRoomInfo;
 import com.netease.nimlib.sdk.chatroom.model.ChatRoomMessage;
+import com.netease.nimlib.sdk.chatroom.model.ChatRoomMember;
 import com.netease.nimlib.sdk.chatroom.model.EnterChatRoomData;
 import com.netease.nimlib.sdk.chatroom.model.EnterChatRoomResultData;
 
@@ -126,6 +127,12 @@ public class NIMPlugin extends CordovaPlugin {
 
         }else if("sendChatRoomAudioMsg".equals(action)){
             sendChatRoomAudioMsg(callbackContext, args.getString(0), args.getString(1), args.getLong(2));
+
+        }else if("pullChatRoomMessageHistory".equals(action)){
+            pullChatRoomMessageHistory(callbackContext, args.getString(0), args.getLong(1), args.getInt(2));
+
+        }else if("fetchRoomMembers".equals(action)){
+            fetchRoomMembers(callbackContext, args.getString(0), args.getString(1), args.getLong(1), args.getInt(2));
 
         }
 
@@ -475,5 +482,73 @@ public class NIMPlugin extends CordovaPlugin {
             }
         });
     }
+
+    private void pullChatRoomMessageHistory(final CallbackContext callbackContext,String roomId,Long startTime,Integer limit) {
+       NIMClient.getService(ChatRoomService.class).pullMessageHistory(roomId, startTime, limit).setCallback(new RequestCallbackWrapper<List<IMMessage>>() {
+            @Override
+            public void onSuccess(List<IMMessage> messages) {
+                JSONArray json = new JSONArray();
+                try {  
+                    for(IMMessage m : messages){
+                        JSONObject jo = new JSONObject();
+                        jo.put("sessionId", m.getSessionId());
+                        jo.put("fromAccount", m.getFromAccount());
+                        jo.put("msgType", m.getMsgType());
+                        jo.put("content", m.getContent());
+                        if(m.getMsgType()!=MsgTypeEnum.text){
+                            jo.put("attachment",((FileAttachment)m.getAttachment()).getPath());
+                        }
+                        json.put(jo);
+                    }  
+                } catch (JSONException je) {  
+                    je.printStackTrace();  
+                }
+                callbackContext.success(json);
+            }
+
+            @Override
+            public void onFailed(int code) {
+                callbackContext.error(code);
+            }
+
+            @Override
+            public void onException(Throwable exception) {
+                callbackContext.error(exception.getMessage());
+            }
+        });
+    }
     
+    private void fetchRoomMembers(final CallbackContext callbackContext,String roomId,String memberQueryType,Long time,Integer limit) {
+       
+       NIMClient.getService(ChatRoomService.class).fetchRoomMembers(roomId,MemberQueryType.NORMAL, time, limit)
+       .setCallback(new RequestCallbackWrapper<List<ChatRoomMember>>() {
+            @Override
+            public void onSuccess(List<ChatRoomMember> members) {
+                JSONArray json = new JSONArray();
+                try {  
+                    for(IMMessage m : members){
+                        JSONObject jo = new JSONObject();
+                        jo.put("account", m.getAccount());
+                        jo.put("avatar", m.getAvatar());
+                        jo.put("enterTime", m.getEnterTime());
+                        jo.put("nick", m.getNick());
+                        json.put(jo);
+                    }  
+                } catch (JSONException je) {  
+                    je.printStackTrace();  
+                }
+                callbackContext.success(json);
+            }
+
+            @Override
+            public void onFailed(int code) {
+                callbackContext.error(code);
+            }
+
+            @Override
+            public void onException(Throwable exception) {
+                callbackContext.error(exception.getMessage());
+            }
+        });
+    }
 }
