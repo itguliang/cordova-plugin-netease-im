@@ -38,7 +38,6 @@ import com.netease.nimlib.sdk.msg.model.IMMessage;
 import com.netease.nimlib.sdk.msg.model.RecentContact;
 import com.netease.nimlib.sdk.msg.attachment.FileAttachment;
 import com.netease.nimlib.sdk.msg.constant.MsgTypeEnum;
-
 import com.netease.nimlib.sdk.chatroom.ChatRoomService;
 import com.netease.nimlib.sdk.chatroom.ChatRoomMessageBuilder;
 import com.netease.nimlib.sdk.chatroom.model.ChatRoomInfo;
@@ -46,6 +45,8 @@ import com.netease.nimlib.sdk.chatroom.model.ChatRoomMessage;
 import com.netease.nimlib.sdk.chatroom.model.ChatRoomMember;
 import com.netease.nimlib.sdk.chatroom.model.EnterChatRoomData;
 import com.netease.nimlib.sdk.chatroom.model.EnterChatRoomResultData;
+import com.netease.nimlib.sdk.chatroom.constant.MemberQueryType;
+
 
 public class NIMPlugin extends CordovaPlugin {
 
@@ -484,71 +485,65 @@ public class NIMPlugin extends CordovaPlugin {
     }
 
     private void pullChatRoomMessageHistory(final CallbackContext callbackContext,String roomId,Long startTime,Integer limit) {
-       NIMClient.getService(ChatRoomService.class).pullMessageHistory(roomId, startTime, limit).setCallback(new RequestCallbackWrapper<List<IMMessage>>() {
+       NIMClient.getService(ChatRoomService.class).pullMessageHistory(roomId, startTime, limit)
+       .setCallback(new RequestCallbackWrapper<List<ChatRoomMessage>>(){
             @Override
-            public void onSuccess(List<IMMessage> messages) {
-                JSONArray json = new JSONArray();
-                try {  
-                    for(IMMessage m : messages){
-                        JSONObject jo = new JSONObject();
-                        jo.put("sessionId", m.getSessionId());
-                        jo.put("fromAccount", m.getFromAccount());
-                        jo.put("msgType", m.getMsgType());
-                        jo.put("content", m.getContent());
-                        if(m.getMsgType()!=MsgTypeEnum.text){
-                            jo.put("attachment",((FileAttachment)m.getAttachment()).getPath());
+            public void onResult(int code, List<ChatRoomMessage> messages, Throwable exception) {
+                Log.i(TAG, "pullChatRoomMessageHistory, code=->"+code);
+                if (messages != null) {
+                    JSONArray json = new JSONArray();
+                    try {  
+                        for(ChatRoomMessage m : messages){
+                            JSONObject jo = new JSONObject();
+                            jo.put("sessionId", m.getSessionId());
+                            jo.put("fromAccount", m.getFromAccount());
+                            jo.put("msgType", m.getMsgType());
+                            jo.put("content", m.getContent());
+                            // if(m.getMsgType()!=MsgTypeEnum.text){
+                            //     jo.put("attachment",((FileAttachment)m.getAttachment()).getPath());
+                            // }
+                            json.put(jo);
                         }
-                        json.put(jo);
+                    } catch (JSONException je) {  
+                        je.printStackTrace();  
                     }  
-                } catch (JSONException je) {  
-                    je.printStackTrace();  
+                    callbackContext.success(json);
+                }else{
+                   callbackContext.success(0); 
                 }
-                callbackContext.success(json);
+
             }
 
-            @Override
-            public void onFailed(int code) {
-                callbackContext.error(code);
-            }
-
-            @Override
-            public void onException(Throwable exception) {
-                callbackContext.error(exception.getMessage());
-            }
         });
     }
     
     private void fetchRoomMembers(final CallbackContext callbackContext,String roomId,String memberQueryType,Long time,Integer limit) {
-       
-       NIMClient.getService(ChatRoomService.class).fetchRoomMembers(roomId,MemberQueryType.NORMAL, time, limit)
-       .setCallback(new RequestCallbackWrapper<List<ChatRoomMember>>() {
+       Log.i(TAG, "fetchRoomMembers, roomId=->"+roomId);
+       NIMClient.getService(ChatRoomService.class).fetchRoomMembers(roomId,MemberQueryType.NORMAL, 0, 10)
+       .setCallback(new RequestCallbackWrapper<List<ChatRoomMember>>(){
             @Override
-            public void onSuccess(List<ChatRoomMember> members) {
-                JSONArray json = new JSONArray();
-                try {  
-                    for(IMMessage m : members){
-                        JSONObject jo = new JSONObject();
-                        jo.put("account", m.getAccount());
-                        jo.put("avatar", m.getAvatar());
-                        jo.put("enterTime", m.getEnterTime());
-                        jo.put("nick", m.getNick());
-                        json.put(jo);
-                    }  
-                } catch (JSONException je) {  
-                    je.printStackTrace();  
+            public void onResult(int code, List<ChatRoomMember> members, Throwable exception) {
+                Log.i(TAG, "fetchRoomMembers, code=->"+code);
+
+                if (members != null) {
+                    JSONArray json = new JSONArray();
+                    try {  
+                        for(ChatRoomMember m : members){
+                            JSONObject jo = new JSONObject();
+                            jo.put("account", m.getAccount());
+                            jo.put("avatar", m.getAvatar());
+                            jo.put("enterTime", m.getEnterTime());
+                            jo.put("nick", m.getNick());
+                            json.put(jo);
+                        }  
+                    } catch (JSONException je) {  
+                        je.printStackTrace(); 
+                        Log.i(TAG, "fetchRoomMembers, JSONException"); 
+                    } 
+                    callbackContext.success(json);
                 }
-                callbackContext.success(json);
             }
 
-            @Override
-            public void onFailed(int code) {
-                callbackContext.error(code);
-            }
-
-            @Override
-            public void onException(Throwable exception) {
-                callbackContext.error(exception.getMessage());
-            }
         });
     }
 }
