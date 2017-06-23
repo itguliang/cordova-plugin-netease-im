@@ -31,6 +31,7 @@ import com.netease.nimlib.sdk.RequestCallbackWrapper;
 import com.netease.nimlib.sdk.auth.AuthService;
 import com.netease.nimlib.sdk.auth.LoginInfo;
 import com.netease.nimlib.sdk.auth.AuthServiceObserver;
+import com.netease.nimlib.sdk.chatroom.ChatRoomServiceObserver;
 
 import com.netease.nimlib.sdk.msg.MessageBuilder;
 import com.netease.nimlib.sdk.msg.MsgService;
@@ -93,6 +94,9 @@ public class NIMPlugin extends CordovaPlugin {
         if (action.equals("messageChannel")) {
             messageChannel = callbackContext;
             return true;
+        }else if (action.equals("addObserver")) {
+            addObserver(args.getString(0).toLowerCase());
+            return true;
         }else if ("login".equals(action)) {
             login(callbackContext, args.getString(0).toLowerCase(), args.getString(1).toLowerCase());
 
@@ -146,6 +150,62 @@ public class NIMPlugin extends CordovaPlugin {
         return true;
     }
 
+    private void addObserver(final String account) {
+        // 在线状态监听
+        NIMClient.getService(AuthServiceObserver.class).observeOnlineStatus(
+            new Observer<StatusCode> () {
+                public void onEvent(StatusCode code) {
+                    Log.i(TAG, "Observer--OnlineStatus: " + code.toString());
+                    JSONObject message = new JSONObject();
+                    try {
+                        message.put("account", account);
+                        message.put("action", "OnlineStatus");
+                        message.put("value", code.toString());
+                    } catch (JSONException e) {
+                        Log.e(TAG, "Failed to create event message", e);
+                    }
+                    PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, message);
+                    pluginResult.setKeepCallback(true);
+                    messageChannel.sendPluginResult(pluginResult);
+
+                    if (code.wontAutoLogin()) {
+                        Log.i(TAG, "User status changed-----wontAutoLogin");
+                         // 被踢出、账号被禁用、密码错误等情况，自动登录失败，需要返回到登录界面进行重新登录操作
+                    }
+                }
+        }, true);
+        // 聊天室消息监听
+
+        NIMClient.getService(ChatRoomServiceObserver.class).observeReceiveMessage(
+            new Observer<List<ChatRoomMessage>>() {
+                @Override
+                public void onEvent(List<ChatRoomMessage> messages) {
+                    // 处理新收到的消息
+                    JSONArray json = new JSONArray();
+                    JSONObject message = new JSONObject();
+                    try {  
+                        for(ChatRoomMessage m : messages){
+                            JSONObject jo = new JSONObject();
+                            jo.put("sessionId", m.getSessionId());
+                            jo.put("fromAccount", m.getFromAccount());
+                            jo.put("msgType", m.getMsgType());
+                            jo.put("content", m.getContent());
+                            json.put(jo);
+                        }
+                        message.put("account", account);
+                        message.put("action", "ChatRoomMsg");
+                        message.put("value", json);
+                    } catch (JSONException je) {  
+                        je.printStackTrace();  
+                    }
+                    Log.i(TAG, "Observer--ChatRoomMsg: " + json.toString());
+                    PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, message);
+                    pluginResult.setKeepCallback(true);
+                    messageChannel.sendPluginResult(pluginResult);
+                }
+        }, true);
+    }
+
     private void login(final CallbackContext callbackContext, final String account, final String token) {
 
         NIMClient.getService(AuthService.class).login(new LoginInfo(account, token))
@@ -165,29 +225,7 @@ public class NIMPlugin extends CordovaPlugin {
                 callbackContext.error(exception.getMessage());
             }
         });
-        NIMClient.getService(AuthServiceObserver.class).observeOnlineStatus(
-            new Observer<StatusCode> () {
-                public void onEvent(StatusCode code) {
-                    Log.i(TAG, "User status changed to: " + code.toString());
-
-                    JSONObject message = new JSONObject();
-                    try {
-                        message.put("action", "OnlineStatus");
-                        message.put("account", account);
-                        message.put("value", code.toString());
-                    } catch (JSONException e) {
-                        Log.e(TAG, "Failed to create event message", e);
-                    }
-                    PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, message);
-                    pluginResult.setKeepCallback(true);
-                    messageChannel.sendPluginResult(pluginResult);
-
-                    if (code.wontAutoLogin()) {
-                        Log.i(TAG, "User status changed-----wontAutoLogin");
-                         // 被踢出、账号被禁用、密码错误等情况，自动登录失败，需要返回到登录界面进行重新登录操作
-                    }
-                }
-        }, true);
+    
     }
     
 
