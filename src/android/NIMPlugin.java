@@ -12,6 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.PluginResult;
 // import org.apache.http.HttpResponse;
 // import org.apache.http.NameValuePair;
 // import org.apache.http.client.HttpClient; 
@@ -85,9 +86,14 @@ public class NIMPlugin extends CordovaPlugin {
     private static final char[] HEX_DIGITS = { '0', '1', '2', '3', '4', '5',
             '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
+    private CallbackContext messageChannel;
+
     @Override
     public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
-        if ("login".equals(action)) {
+        if (action.equals("messageChannel")) {
+            messageChannel = callbackContext;
+            return true;
+        }else if ("login".equals(action)) {
             login(callbackContext, args.getString(0).toLowerCase(), args.getString(1).toLowerCase());
 
         }else if("logout".equals(action)){
@@ -162,8 +168,22 @@ public class NIMPlugin extends CordovaPlugin {
         NIMClient.getService(AuthServiceObserver.class).observeOnlineStatus(
             new Observer<StatusCode> () {
                 public void onEvent(StatusCode code) {
-                    Log.i(TAG, "User status changed to: " + code);
+                    Log.i(TAG, "User status changed to: " + code.toString());
+
+                    JSONObject message = new JSONObject();
+                    try {
+                        message.put("action", "OnlineStatus");
+                        message.put("account", account);
+                        message.put("value", code.toString());
+                    } catch (JSONException e) {
+                        Log.e(TAG, "Failed to create event message", e);
+                    }
+                    PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, message);
+                    pluginResult.setKeepCallback(true);
+                    messageChannel.sendPluginResult(pluginResult);
+
                     if (code.wontAutoLogin()) {
+                        Log.i(TAG, "User status changed-----wontAutoLogin");
                          // 被踢出、账号被禁用、密码错误等情况，自动登录失败，需要返回到登录界面进行重新登录操作
                     }
                 }
