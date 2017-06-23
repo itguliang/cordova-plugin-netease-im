@@ -2,9 +2,11 @@ var exec = require('cordova/exec');
 
 var NIMPluginObjects = {};
 
-var NIMPlugin = function(account, observeOnlineStatus) {
+var NIMPlugin = function(account, observeOnlineStatus, observeChatRoomMsg) {
     NIMPluginObjects[account] = this;
     this.observeOnlineStatus = observeOnlineStatus;
+    this.observeChatRoomMsg = observeChatRoomMsg;
+    exec(null, null, "NIMPlugin", "addObserver", [account]);
 };
 // 登录
 NIMPlugin.prototype.login = function(account, token, onSuccess, onError,onStatus) {
@@ -88,6 +90,9 @@ NIMPlugin.onMessageReceived = function(account, action, value){
 	switch(action) {
         case "OnlineStatus":
           Nim.observeOnlineStatus(value);
+          break;
+        case "ChatRoomMsg":
+          Nim.observeChatRoomMsg(value);
           break;
         default :
           break;
