@@ -1,14 +1,13 @@
 var exec = require('cordova/exec');
-function NIMPlugin() {}
+
+var NIMPluginObjects = {};
+
+var NIMPlugin = function(account, observeOnlineStatus) {
+    NIMPluginObjects[account] = this;
+    this.observeOnlineStatus = observeOnlineStatus;
+};
 // 登录
 NIMPlugin.prototype.login = function(account, token, onSuccess, onError,onStatus) {
-	// var win=function (msg) {
-	//     if (msg) {
-	//       onStatus(msg)
-	//     } else {
-	//       onSuccess();
-	//     }
-	//  }
 	exec(onSuccess, onError, "NIMPlugin", "login", [account, token]);
 }
 // 登出
@@ -84,4 +83,29 @@ NIMPlugin.prototype.fetchRoomMembers = function(roomId,memberQueryType,time,limi
 	exec(onSuccess, onError, "NIMPlugin", "fetchRoomMembers", [roomId,memberQueryType,time,limit]);
 }
 
-module.exports = new NIMPlugin();
+NIMPlugin.onMessageReceived = function(account, action, value){
+	var Nim=NIMPluginObjects[account];
+	switch(action) {
+        case "OnlineStatus":
+          Nim.observeOnlineStatus(value);
+          break;
+        default :
+          break;
+      }
+};
+
+module.exports = NIMPlugin;
+
+function messageObserver(msg) {
+    NIMPlugin.onMessageReceived(msg.account,msg.action,msg.value)
+}
+
+var channel = require('cordova/channel');
+
+channel.createSticky('onMediaPluginReady');
+channel.waitForInitialization('onNIMPluginReady');
+
+channel.onCordovaReady.subscribe(function() {
+    exec(messageObserver, undefined, 'NIMPlugin', 'messageChannel', []);
+    channel.initializationComplete('onNIMPluginReady');
+});
