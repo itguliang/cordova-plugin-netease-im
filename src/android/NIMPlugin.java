@@ -133,7 +133,7 @@ public class NIMPlugin extends CordovaPlugin {
             pullChatRoomMessageHistory(callbackContext, args.getString(0), args.getLong(1), args.getInt(2));
 
         }else if("fetchRoomMembers".equals(action)){
-            fetchRoomMembers(callbackContext, args.getString(0), args.getString(1), args.getLong(1), args.getInt(2));
+            fetchRoomMembers(callbackContext, args.getString(0), args.getString(1), args.getLong(2), args.getInt(3));
 
         }
 
